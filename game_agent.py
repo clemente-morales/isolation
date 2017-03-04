@@ -129,6 +129,11 @@ class CustomPlayer:
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
+            if self.method == 'minimax':
+                (utility, move) = self.minimax(game, self.search_depth, True)
+                return move
+            
+            
             pass
 
         except Timeout:
@@ -139,41 +144,30 @@ class CustomPlayer:
         raise NotImplementedError
 
     def minimax(self, game, depth, maximizing_player=True):
-        """Implement the minimax search algorithm as described in the lectures.
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        depth : int
-            Depth is an integer representing the maximum number of plies to
-            search in the game tree before aborting
-
-        maximizing_player : bool
-            Flag indicating whether the current search depth corresponds to a
-            maximizing layer (True) or a minimizing layer (False)
-
-        Returns
-        -------
-        float
-            The score for the current search branch
-
-        tuple(int, int)
-            The best move for the current branch; (-1, -1) for no legal moves
-
-        Notes
-        -----
-            (1) You MUST use the `self.score()` method for board evaluation
-                to pass the project unit tests; you cannot call any other
-                evaluation function directly.
-        """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
+        
+        if depth == 0:
+            return self.score(game, game.active_player)
+        
+        legal_moves = game.get_legal_moves()
+        if maximizing_player==True:
+            utilities = []
+            for move in legal_moves:
+                new_game = game.forecast_move(move)
+                utility = self.minimax(new_game, depth - 1, False)
+                utilities.append((utility, move))
+            
+            return max(utilities, key = lambda x: x[0])
+        else :
+            utilities = []
+            for move in legal_moves:
+                new_game = game.forecast_move(move)
+                utility = self.minimax(new_game, depth - 1, True)
+                utilities.append((utility, move))
+            
+            return min(utilities, key = lambda x: x[0])
 
-        # TODO: finish this function!
-        raise NotImplementedError
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the

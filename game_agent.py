@@ -147,51 +147,41 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
         
-        utilities = []
         
+        utilities = [] 
+
         for move in game.get_legal_moves():
             new_game = game.forecast_move(move)
             utility = self.min_value(new_game, depth-1)
             utilities.append((utility, move))
-            
-        print ("minimax utilities{}", utilities)
-        return max(utilities, key = lambda x: x[0])
         
+        (utility, selected_move) = max(utilities, key = lambda x: x[0])
+        print ("minimax utilities", utilities)
+        print ("selected move ", selected_move)
+        return (utility, selected_move) 
     
     def max_value(self, game, depth) :
         if depth == 0:
-            return game.utility(game.active_player)
-
-        utilities = []
-        v = (0.0, [-1,-1])
+            return self.score(game, game.active_player)
         
+        utility = float("-inf")
+         
         for move in game.get_legal_moves():
             new_game = game.forecast_move(move)
-            utility = self.min_value(new_game, depth-1)
-            utilities.append((utility, move))
-            
-        print ("maxvalues utilities{}", utilities)
-        v =  max(utilities, key = lambda x: x[0])
-        
-        return v
+            utility = max(utility, self.min_value(new_game, depth-1))
+                        
+        return utility
     
     def min_value(self, game, depth) :
         if depth == 0:
-            return game.utility(game.active_player)
+            return self.score(game, game.inactive_player)
         
-        v = (0.0, [-1,-1])
-        utilities = []
+        utility = float("inf")
         
         for move in game.get_legal_moves():
             new_game = game.forecast_move(move)
-            utility = self.max_value(new_game, depth-1)
-            utilities.append((utility, move))
-        
-        print ("min_value utilities{}", utilities)
-        v = min(utilities, key = lambda x: x[0])
-            
-        return v
-
+            utility = min(utility, self.max_value(new_game, depth-1))
+        return utility
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the

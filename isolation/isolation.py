@@ -246,6 +246,10 @@ class Board(object):
                 return float("-inf")
 
         return 0.
+    
+    def terminal_test(self):
+        "Return True if this is a final state for the game."
+        return not self.get_legal_moves()
 
     def __get_moves__(self, move):
         """

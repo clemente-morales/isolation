@@ -147,26 +147,50 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
         
-        if depth == 0:
-            return self.score(game, game.active_player)
+        utilities = []
         
-        legal_moves = game.get_legal_moves()
-        if maximizing_player==True:
-            utilities = []
-            for move in legal_moves:
-                new_game = game.forecast_move(move)
-                utility = self.minimax(new_game, depth - 1, False)
-                utilities.append((utility, move))
+        for move in game.get_legal_moves():
+            new_game = game.forecast_move(move)
+            utility = self.min_value(new_game, depth-1)
+            utilities.append((utility, move))
             
-            return max(utilities, key = lambda x: x[0])
-        else :
-            utilities = []
-            for move in legal_moves:
-                new_game = game.forecast_move(move)
-                utility = self.minimax(new_game, depth - 1, True)
-                utilities.append((utility, move))
+        print ("minimax utilities{}", utilities)
+        return max(utilities, key = lambda x: x[0])
+        
+    
+    def max_value(self, game, depth) :
+        if depth == 0:
+            return game.utility(game.active_player)
+
+        utilities = []
+        v = (0.0, [-1,-1])
+        
+        for move in game.get_legal_moves():
+            new_game = game.forecast_move(move)
+            utility = self.min_value(new_game, depth-1)
+            utilities.append((utility, move))
             
-            return min(utilities, key = lambda x: x[0])
+        print ("maxvalues utilities{}", utilities)
+        v =  max(utilities, key = lambda x: x[0])
+        
+        return v
+    
+    def min_value(self, game, depth) :
+        if depth == 0:
+            return game.utility(game.active_player)
+        
+        v = (0.0, [-1,-1])
+        utilities = []
+        
+        for move in game.get_legal_moves():
+            new_game = game.forecast_move(move)
+            utility = self.max_value(new_game, depth-1)
+            utilities.append((utility, move))
+        
+        print ("min_value utilities{}", utilities)
+        v = min(utilities, key = lambda x: x[0])
+            
+        return v
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):

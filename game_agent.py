@@ -86,13 +86,42 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
         
-        
-        utilities = [] 
+        utility = self.alphabeta_max_value(game, depth, alpha, beta)
+        selected_move = None 
 
         for move in game.get_legal_moves():
             new_game = game.forecast_move(move)
-            utility = self.min_value(new_game, depth-1)
-            utilities.append((utility, move))
+            game_utility = self.score(new_game, new_game.active_player)
+            if utility == game_utility:
+                selected_move = move
         
-        (utility, selected_move) = max(utilities, key = lambda x: x[0])
         return (utility, selected_move)
+        
+    
+    def alphabeta_max_value(self, game, depth, alpha, beta):
+        if depth == 0:
+            return self.score(game, game.active_player)
+        
+        utility = float("-inf")
+        
+        for move in game.get_legal_moves():
+            new_game = game.forecast_move(move)
+            utility = max(utility, self.alphabeta_min_value(new_game, depth-1, alpha, beta))
+            if utility >= beta:
+                return utility
+            alpha = max(alpha, utility)
+        return utility
+
+    def alphabeta_min_value(self, game, depth, alpha, beta):
+        if depth == 0:
+            return self.score(game, game.inactive_player)
+        
+        utility = float("inf")
+        
+        for move in game.get_legal_moves():
+            new_game = game.forecast_move(move)
+            utility = min(utility, self.alphabeta_max_value(new_game, depth-1, alpha, beta))
+            if utility <= alpha:
+                return utility
+            beta = min(beta, utility)
+        return utility

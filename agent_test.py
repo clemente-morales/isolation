@@ -471,7 +471,7 @@ class Project1Test(unittest.TestCase):
                 method, test_depth, counts[idx][0], board.counts[0]))
 
             self.assertTrue(num_unique_valid, UNEXPECTED_VISIT.format(
-                method, test_depth, counts[idx][1], board.counts[1]))
+              method, test_depth, counts[idx][1], board.counts[1]))
 
             self.assertIn(move, first_branch, WRONG_MOVE.format(
                 method, test_depth, first_branch, move))

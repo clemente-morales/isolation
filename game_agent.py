@@ -29,39 +29,61 @@ class CustomPlayer:
 
     def get_move(self, game, legal_moves, time_left):
         self.time_left = time_left
+        
+        selected_move = (-1, -1)
+        depth = self.search_depth
+        depth+=1
 
         try:
-            if self.method == 'minimax':
-                (utility, move) = self.minimax(game, self.search_depth, True)
-                return move
-            elif self.method == 'alphabeta':
-                (utility, move) = self.alphabeta(game, self.search_depth)
-                return move
-            pass
-
+            if self.iterative == True:
+                while True:
+                    depth+=1
+                    temp = self.get_best_move(game, depth)
+                    if temp is not None:
+                        selected_move = temp
+                        
+                    if self.time_left() < self.TIMER_THRESHOLD:
+                        raise Timeout()
+            else:
+                selected_move = self.get_best_move(game, self.search_depth)
+                
         except Timeout:
             pass
 
-        raise NotImplementedError
+        return selected_move
+    
+    def get_best_move(self, game, depth) :
+        if self.method == 'minimax':
+            (utility, move) = self.minimax(game, depth, True)
+            return move
+        elif self.method == 'alphabeta':
+            (utility, move) = self.alphabeta(game, depth)
+            return move
+                    
 
     def minimax(self, game, depth, maximizing_player=True):
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise Timeout()
-        
-        
         utilities = [] 
 
-        for move in game.get_legal_moves():
-            new_game = game.forecast_move(move)
-            utility = self.min_value(new_game, depth-1)
-            utilities.append((utility, move))
+        try:
+            for move in game.get_legal_moves():
+                new_game = game.forecast_move(move)
+                utility = self.min_value(new_game, depth-1)
+                utilities.append((utility, move))
+        except Timeout:
+            pass
+        
+        if not utilities:
+            return (0, None)
         
         (utility, selected_move) = max(utilities, key = lambda x: x[0])
         return (utility, selected_move) 
     
     def max_value(self, game, depth) :
-        if depth == 0:
-            return self.score(game, game.active_player)
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise Timeout()
+        
+        if depth <= 0:
+            return self.score(game, game.active_player)            
         
         utility = float("-inf")
          
@@ -72,8 +94,11 @@ class CustomPlayer:
         return utility
     
     def min_value(self, game, depth) :
-        if depth == 0:
-            return self.score(game, game.inactive_player)
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise Timeout()
+        
+        if depth <= 0:
+            return self.score(game, game.inactive_player)                    
         
         utility = float("inf")
         
@@ -81,6 +106,7 @@ class CustomPlayer:
             new_game = game.forecast_move(move)
             utility = min(utility, self.max_value(new_game, depth-1))
         return utility
+    
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         if self.time_left() < self.TIMER_THRESHOLD:
